@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 
 const containerStyle = {
 	alignItems: "center",
@@ -8,6 +9,16 @@ const containerStyle = {
 const starContainerStyle = {
 	display: "flex",
 	gap: "4px",
+};
+
+StarRating.propTypes = {
+	className: PropTypes.string,
+	color: PropTypes.string,
+	defaultRating: PropTypes.number,
+	maxRating: PropTypes.number,
+	messages: PropTypes.array,
+	onSetRating: PropTypes.func,
+	size: PropTypes.number,
 };
 
 export default function StarRating({
