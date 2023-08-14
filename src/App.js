@@ -53,6 +53,7 @@ const average = (arr) =>
 	arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
 export default function App() {
+	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [movies, setMovies] = useState(tempMovieData);
 	const query = "interstellar";
@@ -62,13 +63,26 @@ export default function App() {
 		setIsLoading(true);
 
 		async function fetchMovies() {
-			const res = await fetch(
-				`https://omdbapi.com/?apikey=${apiKey}&s=${query}`
-			);
-			const data = await res.json();
+			try {
+				const res = await fetch(
+					`https://omdbapi.com/?apikey=${apiKey}&s=${query}`
+				);
 
-			setMovies(data.Search);
-			setIsLoading(false);
+				if (!res.ok)
+					throw new Error("Something went wrong with fetching the movies.");
+
+				const data = await res.json();
+
+				if (data.Response === "False") {
+					throw new Error(data.Error);
+				}
+
+				setMovies(data.Search);
+			} catch (error) {
+				setError(error.message);
+			} finally {
+				setIsLoading(false);
+			}
 		}
 
 		fetchMovies();
@@ -82,7 +96,11 @@ export default function App() {
 				<NumResults movies={movies} />
 			</NavBar>
 			<Main>
-				<Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
+				<Box>
+					{isLoading && <Loader />}
+					{!isLoading && !error && <MovieList movies={movies} />}
+					{error && <ErrorMessage message={error} />}
+				</Box>
 				<Box>
 					<WatchedSummary watched={watched} />
 					<WatchedMovieList watched={watched} />
@@ -105,6 +123,14 @@ function Box({ children }) {
 			</button>
 			{isOpen && children}
 		</div>
+	);
+}
+
+function ErrorMessage({ message }) {
+	return (
+		<p className="error">
+			<span>⛔</span> {message}
+		</p>
 	);
 }
 
