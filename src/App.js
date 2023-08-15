@@ -56,14 +56,15 @@ export default function App() {
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [movies, setMovies] = useState(tempMovieData);
-	const query = "interstellar";
+	const [query, setQuery] = useState("inception");
 	const [watched, setWatched] = useState(tempWatchedData);
 
 	useEffect(() => {
-		setIsLoading(true);
-
 		async function fetchMovies() {
 			try {
+				setIsLoading(true);
+				setError("");
+
 				const res = await fetch(
 					`https://omdbapi.com/?apikey=${apiKey}&s=${query}`
 				);
@@ -85,14 +86,23 @@ export default function App() {
 			}
 		}
 
+		if (query.length < 3) {
+			setError("");
+			setMovies([]);
+			return;
+		}
+
 		fetchMovies();
-	}, []);
+	}, [query]);
 
 	return (
 		<>
 			<NavBar>
 				<Logo />
-				<SearchBar />
+				<SearchBar
+					query={query}
+					setQuery={setQuery}
+				/>
 				<NumResults movies={movies} />
 			</NavBar>
 			<Main>
@@ -194,9 +204,7 @@ function NumResults({ movies }) {
 	);
 }
 
-function SearchBar() {
-	const [query, setQuery] = useState("");
-
+function SearchBar({ query, setQuery }) {
 	return (
 		<input
 			className="search"
