@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StarRating from "./StarRating";
 
 const tempMovieData = [
 	{
@@ -194,7 +195,7 @@ function Movie({ movie, onSelectMovie }) {
 			<h3>{movie.Title}</h3>
 			<div>
 				<p>
-					<span>🗓</span>
+					<span>📅</span>
 					<span>{movie.Year}</span>
 				</p>
 			</div>
@@ -241,15 +242,84 @@ function SearchBar({ query, setQuery }) {
 }
 
 function MovieDetails({ onCloseMovie, selectedID }) {
+	const [isLoading, setIsLoading] = useState(false);
+	const [movie, setMovie] = useState({});
+
+	const {
+		Actors: actors,
+		Director: director,
+		Genre: genre,
+		imdbRating,
+		Plot: plot,
+		Poster: poster,
+		Released: released,
+		Runtime: runtime,
+		Title: title,
+	} = movie;
+
+	useEffect(
+		function () {
+			async function getMovieDetails() {
+				setIsLoading(true);
+
+				const res = await fetch(
+					`https://www.omdbapi.com/?apikey=${apiKey}&i=${selectedID}`
+				);
+
+				const data = await res.json();
+
+				setIsLoading(false);
+				setMovie(data);
+			}
+
+			getMovieDetails();
+		},
+		[selectedID]
+	);
 	return (
 		<div className="details">
-			<button
-				class="btn-back"
-				onClick={onCloseMovie}
-			>
-				&larr;
-			</button>
-			{selectedID}
+			{isLoading ? (
+				<Loader />
+			) : (
+				<>
+					<header>
+						<button
+							class="btn-back"
+							onClick={onCloseMovie}
+						>
+							&larr;
+						</button>
+						<img
+							src={poster}
+							alt={`Poster of ${movie}.`}
+						/>
+						<div className="details-overview">
+							<h2>{title}</h2>
+							<p>
+								{released} &bull; {runtime}
+							</p>
+							<p>{genre}</p>
+							<p>
+								<span>⭐</span> {imdbRating} IMDb rating
+							</p>
+						</div>
+					</header>
+					<section>
+						<div className="rating">
+							<StarRating
+								maxRating={10}
+								size={24}
+							/>
+						</div>
+						<p>
+							<em>{plot}</em>
+						</p>
+						<p>Starring: {actors}</p>
+						<p>Directed by: {director}</p>
+					</section>
+					{selectedID}
+				</>
+			)}
 		</div>
 	);
 }
