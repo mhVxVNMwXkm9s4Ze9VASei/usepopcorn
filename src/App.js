@@ -57,7 +57,16 @@ export default function App() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [movies, setMovies] = useState(tempMovieData);
 	const [query, setQuery] = useState("inception");
+	const [selectedID, setSelectedID] = useState(null);
 	const [watched, setWatched] = useState(tempWatchedData);
+
+	function handleCloseMovie() {
+		setSelectedID(null);
+	}
+
+	function handleSelectMovie(id) {
+		setSelectedID((selectedID) => (id === selectedID ? null : id));
+	}
 
 	useEffect(() => {
 		async function fetchMovies() {
@@ -108,12 +117,26 @@ export default function App() {
 			<Main>
 				<Box>
 					{isLoading && <Loader />}
-					{!isLoading && !error && <MovieList movies={movies} />}
+					{!isLoading && !error && (
+						<MovieList
+							movies={movies}
+							onSelectMovie={handleSelectMovie}
+						/>
+					)}
 					{error && <ErrorMessage message={error} />}
 				</Box>
 				<Box>
-					<WatchedSummary watched={watched} />
-					<WatchedMovieList watched={watched} />
+					{selectedID ? (
+						<MovieDetails
+							onCloseMovie={handleCloseMovie}
+							selectedID={selectedID}
+						/>
+					) : (
+						<>
+							<WatchedSummary watched={watched} />
+							<WatchedMovieList watched={watched} />
+						</>
+					)}
 				</Box>
 			</Main>
 		</>
@@ -161,9 +184,9 @@ function Main({ children }) {
 	return <main className="main">{children}</main>;
 }
 
-function Movie({ movie }) {
+function Movie({ movie, onSelectMovie }) {
 	return (
-		<li>
+		<li onClick={() => onSelectMovie(movie.imdbID)}>
 			<img
 				src={movie.Poster}
 				alt={`${movie.Title} poster`}
@@ -179,13 +202,14 @@ function Movie({ movie }) {
 	);
 }
 
-function MovieList({ movies }) {
+function MovieList({ movies, onSelectMovie }) {
 	return (
-		<ul className="list">
+		<ul className="list list-movies">
 			{movies?.map((movie) => (
 				<Movie
 					key={movie.imdbID}
 					movie={movie}
+					onSelectMovie={onSelectMovie}
 				/>
 			))}
 		</ul>
@@ -213,6 +237,20 @@ function SearchBar({ query, setQuery }) {
 			value={query}
 			onChange={(e) => setQuery(e.target.value)}
 		/>
+	);
+}
+
+function MovieDetails({ onCloseMovie, selectedID }) {
+	return (
+		<div className="details">
+			<button
+				class="btn-back"
+				onClick={onCloseMovie}
+			>
+				&larr;
+			</button>
+			{selectedID}
+		</div>
 	);
 }
 
