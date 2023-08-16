@@ -57,7 +57,7 @@ export default function App() {
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [movies, setMovies] = useState(tempMovieData);
-	const [query, setQuery] = useState("inception");
+	const [query, setQuery] = useState("");
 	const [selectedID, setSelectedID] = useState(null);
 	const [watched, setWatched] = useState([]);
 
@@ -102,9 +102,10 @@ export default function App() {
 				setMovies(data.Search);
 				setError("");
 			} catch (error) {
-				console.error(error.message);
-
-				if (error.name !== "AbortError") setError(error.message);
+				if (error.name !== "AbortError") {
+					console.log(error.message);
+					setError(error.message);
+				}
 			} finally {
 				setIsLoading(false);
 			}
@@ -116,6 +117,7 @@ export default function App() {
 			return;
 		}
 
+		handleCloseMovie();
 		fetchMovies();
 
 		return function () {
@@ -264,6 +266,23 @@ function MovieDetails({ onAddWatched, onCloseMovie, selectedID, watched }) {
 		onAddWatched(newWatchedMovie);
 		onCloseMovie();
 	}
+
+	useEffect(
+		function () {
+			function escapeCallback(event) {
+				if (event.code === "Escape") {
+					onCloseMovie();
+				}
+			}
+
+			document.addEventListener("keydown", escapeCallback);
+
+			return function () {
+				document.removeEventListener("keydown", escapeCallback);
+			};
+		},
+		[onCloseMovie]
+	);
 
 	useEffect(
 		function () {
