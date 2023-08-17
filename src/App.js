@@ -12,10 +12,16 @@ export default function App() {
 	const [movies, setMovies] = useState([]);
 	const [query, setQuery] = useState("");
 	const [selectedID, setSelectedID] = useState(null);
-	const [watched, setWatched] = useState([]);
+	const [watched, setWatched] = useState(() =>
+		JSON.parse(localStorage.getItem("watched"))
+	);
 
 	function handleAddWatched(movie) {
 		setWatched((watched) => [...watched, movie]);
+
+		// Leaving this here because this can be used as an alternative to modifying storage in our effect.
+		// However, if we set local storage this way, we would also have to update it in handleDeleteWatched().
+		// localStorage.setItem("watched", JSON.stringify([...watched, movie]));
 	}
 
 	function handleCloseMovie() {
@@ -29,6 +35,11 @@ export default function App() {
 	function handleSelectMovie(id) {
 		setSelectedID((selectedID) => (id === selectedID ? null : id));
 	}
+
+	useEffect(
+		() => localStorage.setItem("watched", JSON.stringify(watched)),
+		[watched]
+	);
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -329,7 +340,6 @@ function MovieDetails({ onAddWatched, onCloseMovie, selectedID, watched }) {
 						<p>Starring: {actors}</p>
 						<p>Directed by: {director}</p>
 					</section>
-					{selectedID}
 				</>
 			)}
 		</div>
